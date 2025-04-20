@@ -1,4 +1,6 @@
 ﻿using devagramC.Dtos;
+using devagramC.Models;
+using devagramC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,9 +26,48 @@ namespace devagramC.Controllers
         {
             try
             {
-                throw new ArgumentException("Erro ao preencher os dados"); 
-            }
-            catch (Exception e)
+                if (!String.IsNullOrEmpty(loginrequisicao.Senha) && !String.IsNullOrEmpty(loginrequisicao.Email) &&
+                     !String.IsNullOrWhiteSpace(loginrequisicao.Senha) && !String.IsNullOrWhiteSpace(loginrequisicao.Email))
+                {
+                    string email = "samuel@devaria.com.br";
+                    string senha = "senha123";
+
+                    if(loginrequisicao.Email== email && loginrequisicao.Senha == senha)
+                    {
+                        Usuario usuario = new Usuario()
+                        {
+                            Email = loginrequisicao.Email,
+                            Id = 12,
+                            Nome = "Samuel"
+                        };
+
+                        return Ok(new LoginRespostaDto()
+                        {
+                            Email = usuario.Email,
+                            Nome = usuario.Nome,
+                            Token =TokenService.CriarToken(usuario)
+                        });
+                    }else
+                    {
+                        return BadRequest(new ErrorRespostaDto()
+                        {
+                            Descricao = "Email ou senha invalido",
+                            Status = StatusCodes.Status400BadRequest
+                        });
+                    }
+                }else
+                {
+                    return BadRequest(new ErrorRespostaDto()
+                    {
+                        Descricao = "Usuario não preencheu os campos de login corretamente",
+                        Status = StatusCodes.Status400BadRequest
+                    });
+                }
+
+
+
+
+            }catch (Exception e)
             {
                 _logger.LogError("Ocorreu um erro no login: " + e.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new ErrorRespostaDto()
