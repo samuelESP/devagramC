@@ -1,5 +1,8 @@
 using devagramC.Models;
+using devagramC.repository;
+using devagramC.repository.Impl;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -12,6 +15,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+
+//Conexão com o banco
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<DevagramContext>(option => option.UseSqlServer(connectionString));
+
+
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepositoryImpl>();
+
+//Chave criptografada
 var chaveCriptografia = Encoding.ASCII.GetBytes(ChaveJWT.ChaveSecreta);
 builder.Services.AddAuthentication(auth =>
 {
@@ -32,6 +46,8 @@ builder.Services.AddAuthentication(auth =>
 });
     
 
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -42,6 +58,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
