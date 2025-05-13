@@ -11,6 +11,16 @@ namespace devagramC.repository.Impl
             _context = context;
         }
 
+        public Usuario GetUsuarioPorId(int id)
+        {
+            return _context.Usuarios.FirstOrDefault(u => u.Id == id);
+        }
+
+        public Usuario GetUsuarioPorLoginSenha(string email, string senha)
+        {
+            return _context.Usuarios.FirstOrDefault(u => u.Email == email && u.Senha == senha);
+        }
+
         public void Salvar(Usuario usuario)
         {
             _context.Add(usuario);

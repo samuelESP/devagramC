@@ -1,6 +1,7 @@
 ﻿using devagramC.Dtos;
 using devagramC.Models;
 using devagramC.repository;
+using devagramC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -14,11 +15,11 @@ namespace devagramC.Controllers
     {
 
         private readonly ILogger<UsuarioController> _logger;
-        public readonly IUsuarioRepository _usuarioRepository;
-        public UsuarioController(ILogger<UsuarioController> logger, IUsuarioRepository usuarioRepository)
+
+        public UsuarioController(ILogger<UsuarioController> logger,
+             IUsuarioRepository usuarioRepository) : base(usuarioRepository)
         {
             _logger = logger;
-            _usuarioRepository = usuarioRepository;
         }
 
 
@@ -28,14 +29,13 @@ namespace devagramC.Controllers
 
             try
             {
-                Usuario usuario = new Usuario()
-                {
-                    Email = "samuel@devaria.com.br",
-                    Id = 12,
-                    Nome = "Samuel"
-                };
+                Usuario usuario = LerToken();
 
-                return Ok(usuario);
+                return Ok(new UsuarioRepostaDto
+                {
+                    Nome = usuario.Nome,
+                    Email = usuario.Email
+                });
             }catch(Exception e)
             {
                 _logger.LogError("Ocorreu um erro ao obeter usuário");
@@ -48,23 +48,26 @@ namespace devagramC.Controllers
             
         }
         [HttpPost]
-        public IActionResult SalvarUsuario([FromBody] Usuario usuario)
+        [AllowAnonymous]
+        public IActionResult SalvarUsuario([FromForm] UsuarioRequisicaoDto usuariodto)
         {
             try
             {
-                if (usuario != null)
+
+
+                if (usuariodto != null)
                 {
                     var erros = new List<string>();
 
-                    if (string.IsNullOrEmpty(usuario.Email) || string.IsNullOrWhiteSpace(usuario.Email) || !usuario.Email.Contains("@"))
+                    if (string.IsNullOrEmpty(usuariodto.Email) || string.IsNullOrWhiteSpace(usuariodto.Email) || !usuariodto.Email.Contains("@"))
                     {
                         erros.Add("Email inválido");
                     }
-                    if (string.IsNullOrEmpty(usuario.Senha) || string.IsNullOrWhiteSpace(usuario.Senha))
+                    if (string.IsNullOrEmpty(usuariodto.Senha) || string.IsNullOrWhiteSpace(usuariodto.Senha))
                     {
                         erros.Add("Senha inválida");
                     }
-                    if (string.IsNullOrEmpty(usuario.Nome) || string.IsNullOrWhiteSpace(usuario.Nome))
+                    if (string.IsNullOrEmpty(usuariodto.Nome) || string.IsNullOrWhiteSpace(usuariodto.Nome))
                     {
                         erros.Add("Nome inválido");
                     }
@@ -77,6 +80,17 @@ namespace devagramC.Controllers
                             Erros = erros
                         });
                     }
+
+                    CosmicService cosmicService = new CosmicService();
+
+                    Usuario usuario = new Usuario()
+                    {
+                        Email = usuariodto.Email,
+                        Senha = usuariodto.Senha,
+                        Nome = usuariodto.Nome,
+                        FotoPerfil = cosmicService.EnviarImagem(new ImagemDto { Imagem = usuariodto.FotoPerfil, Nome = usuariodto.Nome.Replace(" ", "") }),
+                    };
+
 
                     usuario.Senha = Utils.MD5Utils.GerarHashMD5(usuario.Senha);
                     usuario.Email = usuario.Email.ToLower();
@@ -97,7 +111,7 @@ namespace devagramC.Controllers
                         
 
                 }
-                    return Ok(usuario);
+                    return Ok("usuário foi salvo com sucesso");
                 
             }
             catch(Exception e)

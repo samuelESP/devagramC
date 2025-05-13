@@ -1,6 +1,7 @@
 using devagramC.Models;
 using devagramC.repository;
 using devagramC.repository.Impl;
+using devagramC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -44,8 +45,9 @@ builder.Services.AddAuthentication(auth =>
         ValidateAudience = false
     };
 });
-    
 
+
+builder.Services.AddScoped<CosmicService>();
 
 
 var app = builder.Build();

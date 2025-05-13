@@ -1,6 +1,8 @@
 ﻿using devagramC.Dtos;
 using devagramC.Models;
+using devagramC.repository;
 using devagramC.Services;
+using devagramC.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,9 +15,12 @@ namespace devagramC.Controllers
 
 
         private readonly ILogger<LoginController> _logger;
-        public LoginController(ILogger<LoginController> logger)
+
+        private readonly IUsuarioRepository _usuarioRepository;
+        public LoginController(ILogger<LoginController> logger, IUsuarioRepository usuarioRepository)
         {
             _logger = logger;
+            _usuarioRepository = usuarioRepository;
         }
 
 
@@ -29,18 +34,11 @@ namespace devagramC.Controllers
                 if (!String.IsNullOrEmpty(loginrequisicao.Senha) && !String.IsNullOrEmpty(loginrequisicao.Email) &&
                      !String.IsNullOrWhiteSpace(loginrequisicao.Senha) && !String.IsNullOrWhiteSpace(loginrequisicao.Email))
                 {
-                    string email = "samuel@devaria.com.br";
-                    string senha = "senha123";
+                    Usuario usuario = _usuarioRepository.GetUsuarioPorLoginSenha(loginrequisicao.Email.ToLower(), MD5Utils.GerarHashMD5(loginrequisicao.Senha));
 
-                    if(loginrequisicao.Email== email && loginrequisicao.Senha == senha)
+                    if (usuario != null)
                     {
-                        Usuario usuario = new Usuario()
-                        {
-                            Email = loginrequisicao.Email,
-                            Id = 12,
-                            Nome = "Samuel"
-                        };
-
+                        
                         return Ok(new LoginRespostaDto()
                         {
                             Email = usuario.Email,
