@@ -10,5 +10,7 @@ namespace devagramC.repository
         public bool VerificarEmail(string email);
 
         public Usuario GetUsuarioPorId(int id);
+
+        public void AtualizarUsuario(Usuario usuario);
     }
 }
